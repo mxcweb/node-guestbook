@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>留言本</title>
+  <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.css">
+  <style>
+  .comments {
+    height: 300px;
+    overflow-y: scroll;
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+  </style>
+</head>
+
+<body>
+  <header class="container alert alert-warning">
+    <div class="page-header">
+      <h1><small>小小留言本</small></h1>
+    </div>
+  </header>
+  <div class="container comments">
+    <ul class="list-group">
+      <li class="list-group-item">Cras justo odio</li>
+      <li class="list-group-item">Dapibus ac facilisis in</li>
+      <li class="list-group-item">Morbi leo risus</li>
+    </ul>
+  </div>
+  <div class="container">
+    <form id="form" method="post" action="/" role="form">
+      <div class="form-group">
+        <label for="username">姓名：</label>
+        <input type="text" class="form-control" name="username" id="username" placeholder="请输入你的姓名">
+      </div>
+      <div class="form-group">
+        <label for="phone">电话：</label>
+        <input type="tel" class="form-control" name="phone" id="phone" placeholder="请输入你的电话号码">
+      </div>
+      <div class="form-group">
+        <label for="comment">留言</label>
+        <textarea class="form-control" name="comment" id="comment" rows="3" placeholder="请输入反馈内容"></textarea>
+      </div>
+      <button type="submit" class="btn btn-success">提交</button>
+    </form>
+  </div>
+  <script src="/node_modules/jquery/dist/jquery.js"></script>
+  <script>
+$(function(){
+    getList();
+    function getList(){
+        $.ajax({
+            url:'/comments',
+            type:'get',
+            dataType:'json',
+            success:function(data){
+                if(data.code==2000){
+                    $.each(data.list,function(index,item){
+                        $('.list-group').append(`<li class="list-group-item">${item.name}说：${item.comment}</li>`)
+                    })
+                } 
+            }
+        })
+    }
+
+
+    $('#form').on('submit', function (e) {
+        e.preventDefault()
+        var url = $(this).attr('action')
+        var method = $(this).attr('method')
+        console.log($(this).serialize())
+        $.ajax({
+          url: url,
+          method: method,
+          data: $(this).serialize(),
+          dataType: 'json',
+          success: function (data) {
+            var code = data.code
+            switch (code) {
+              case 1000:
+                // 当用户发表留言成功的时候，异步无刷新改变内容
+                getList()
+                alert('恭喜，留言成功了！')
+                $('input').val('')
+                $('#comment').val('')
+                break;
+              case 1001:
+                alert('哎哟，留言失败了哦！')
+                break;
+              case 1002:
+                alert(data.msg)
+                break;
+              default:
+                break;
+            }
+          }
+        })
+      })
+})
+  </script>
+</body>
+
+</html>
